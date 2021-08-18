@@ -13,18 +13,24 @@ export class GamesRepository implements IGamesRepository {
   }
 
   async findByTitleContaining(param: string): Promise<Game[]> {
-    return this.repository
-      .createQueryBuilder()
-      // Complete usando query builder
+    return await this.repository
+      .createQueryBuilder('games')
+      .select('title')
+      .where(`title ~* :title`, { title: param })
+      .getRawMany()
   }
 
   async countAllGames(): Promise<[{ count: string }]> {
-    return this.repository.query(); // Complete usando raw query
+    return await this.repository.query(`SELECT COUNT(*) FROM GAMES`); 
   }
 
   async findUsersByGameId(id: string): Promise<User[]> {
-    return this.repository
-      .createQueryBuilder()
-      // Complete usando query builder
+    return await this.repository
+      .createQueryBuilder('games')
+      .select('u.first_name, u.last_name, u.email')
+      .innerJoin('users_games_games', 'ugg', 'games.id = ugg.gamesId')
+      .innerJoin('users', 'u', 'ugg.usersId = u.id')
+      .where('ugg.gamesId = :id', { id })
+      .getRawMany();
   }
 }
